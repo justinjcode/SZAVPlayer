@@ -73,6 +73,7 @@ class SZAVPlayerDataLoaderOperation: Operation {
     }
 
     override public func cancel() {
+        self.operationQueue.cancelAllOperations()
         super.cancel()
     }
 

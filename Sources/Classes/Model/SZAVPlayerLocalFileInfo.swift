@@ -18,9 +18,7 @@ public struct SZAVPlayerLocalFileInfo: SZBaseModel {
     var updated: Int64 = 0
 
     static func newFileName(uniqueID: String) -> String {
-        let timeInterval = Int64(Date().timeIntervalSince1970 * 1000)
-
-        return "\(timeInterval)"
+        return uniqueID
     }
 
 }

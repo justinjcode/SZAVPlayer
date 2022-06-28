@@ -27,6 +27,7 @@ class SZAVPlayerDataLoader: NSObject {
     private let url: URL
     private let config: SZAVPlayerConfig
     private var mediaData: Data?
+    private var dataLoaderOperation: SZAVPlayerDataLoaderOperation?
 
     init(uniqueID: String, url: URL, config: SZAVPlayerConfig, callbackQueue: DispatchQueue) {
         self.uniqueID = uniqueID
@@ -41,16 +42,23 @@ class SZAVPlayerDataLoader: NSObject {
     }
 
     public func append(requestedRange: SZAVPlayerRange, dataRequest: SZAVPlayerDataRequest) {
+        if let oldDataLoaderOperation = self.dataLoaderOperation {
+            oldDataLoaderOperation.cancel()
+        }
         let dataLoaderOperation = SZAVPlayerDataLoaderOperation(uniqueID: uniqueID,
                                                                 url: url,
                                                                 config: config,
                                                                 requestedRange: requestedRange,
                                                                 dataRequest: dataRequest)
         dataLoaderOperation.delegate = self
-        dataLoaderOperationQueue.addOperation(dataLoaderOperation)
+        self.dataLoaderOperation = dataLoaderOperation
+        dataLoaderOperation.start()
+//        dataLoaderOperationQueue.addOperation(dataLoaderOperation)
+        SZLogDebug("append request range:\(requestedRange) url:\(url)")
     }
 
     public func cancel() {
+        self.dataLoaderOperation?.cancel()
         dataLoaderOperationQueue.cancelAllOperations()
     }
 
