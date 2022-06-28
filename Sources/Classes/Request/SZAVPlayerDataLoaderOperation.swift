@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import AVFoundation
 
 protocol SZAVPlayerDataLoaderOperationDelegate: AnyObject {
 
@@ -89,6 +90,10 @@ class SZAVPlayerDataLoaderOperation: Operation {
 
     override open var isAsynchronous: Bool {
         return true
+    }
+    
+    public func containsLoadingRequest(_ loadingRequest: AVAssetResourceLoadingRequest) -> Bool {
+        return self.dataRequest.loadingRequest == loadingRequest
     }
 
 }

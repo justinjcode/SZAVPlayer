@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import AVFoundation
 
 public typealias SZAVPlayerRange = Range<Int64>
 
@@ -27,7 +28,7 @@ class SZAVPlayerDataLoader: NSObject {
     private let url: URL
     private let config: SZAVPlayerConfig
     private var mediaData: Data?
-    private var dataLoaderOperation: SZAVPlayerDataLoaderOperation?
+    private var allDataLoaderOperation: [SZAVPlayerDataLoaderOperation] = []
 
     init(uniqueID: String, url: URL, config: SZAVPlayerConfig, callbackQueue: DispatchQueue) {
         self.uniqueID = uniqueID
@@ -42,23 +43,33 @@ class SZAVPlayerDataLoader: NSObject {
     }
 
     public func append(requestedRange: SZAVPlayerRange, dataRequest: SZAVPlayerDataRequest) {
-        if let oldDataLoaderOperation = self.dataLoaderOperation {
-            oldDataLoaderOperation.cancel()
-        }
         let dataLoaderOperation = SZAVPlayerDataLoaderOperation(uniqueID: uniqueID,
                                                                 url: url,
                                                                 config: config,
                                                                 requestedRange: requestedRange,
                                                                 dataRequest: dataRequest)
         dataLoaderOperation.delegate = self
-        self.dataLoaderOperation = dataLoaderOperation
-        dataLoaderOperation.start()
-//        dataLoaderOperationQueue.addOperation(dataLoaderOperation)
+        self.allDataLoaderOperation.append(dataLoaderOperation)
+        dataLoaderOperationQueue.addOperation(dataLoaderOperation)
         SZLogDebug("append request range:\(requestedRange) url:\(url)")
+    }
+    
+    public func cancelLoadingRequest(_ loadingRequest: AVAssetResourceLoadingRequest) {
+        let operationToCancel = self.allDataLoaderOperation.filter { operation in
+            return operation.containsLoadingRequest(loadingRequest)
+        }
+        operationToCancel.forEach { operation in
+            operation.cancel()
+            if let firstIndex = self.allDataLoaderOperation.firstIndex(of: operation) {
+                self.allDataLoaderOperation.remove(at: firstIndex)
+            }
+        }
     }
 
     public func cancel() {
-        self.dataLoaderOperation?.cancel()
+        self.allDataLoaderOperation.forEach { operation in
+            operation.cancel()
+        }
         dataLoaderOperationQueue.cancelAllOperations()
     }
 

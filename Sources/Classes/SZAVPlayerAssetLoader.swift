@@ -172,6 +172,8 @@ extension SZAVPlayerAssetLoader {
         guard let avDataRequest = loadingRequest.dataRequest else {
             return false
         }
+        
+        SZLogDebug("assetloader(\(self) handleDataRequest \(loadingRequest)")
 
         let lowerBound = avDataRequest.requestedOffset
         let length = Int64(avDataRequest.requestedLength)
@@ -241,7 +243,8 @@ extension SZAVPlayerAssetLoader: AVAssetResourceLoaderDelegate {
     public func resourceLoader(_ resourceLoader: AVAssetResourceLoader,
                                didCancel loadingRequest: AVAssetResourceLoadingRequest)
     {
-        dataLoader.cancel()
+        dataLoader.cancelLoadingRequest(loadingRequest)
+        SZLogDebug("cancel loadingRequest \(loadingRequest)")
     }
 
 }
