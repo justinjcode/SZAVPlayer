@@ -29,7 +29,7 @@ public class SZAVPlayerCache: NSObject {
     }
 
     public func save(uniqueID: String, mediaData: Data, startOffset: Int64) {
-        let newFileName = SZAVPlayerLocalFileInfo.newFileName(uniqueID: uniqueID)
+        let newFileName = SZAVPlayerLocalFileInfo.newFileName(uniqueID: uniqueID, startOffset: startOffset)
         let localFilePath = SZAVPlayerFileSystem.localFilePath(fileName: newFileName)
         if SZAVPlayerFileSystem.write(data: mediaData, url: localFilePath) {
             let fileInfo = SZAVPlayerLocalFileInfo(uniqueID: uniqueID,

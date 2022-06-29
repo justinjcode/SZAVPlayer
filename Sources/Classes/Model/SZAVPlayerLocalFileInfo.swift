@@ -17,8 +17,8 @@ public struct SZAVPlayerLocalFileInfo: SZBaseModel {
     var localFileName: String
     var updated: Int64 = 0
 
-    static func newFileName(uniqueID: String) -> String {
-        return uniqueID
+    static func newFileName(uniqueID: String, startOffset: Int64) -> String {
+        return "\(uniqueID)_\(startOffset)"
     }
 
 }
