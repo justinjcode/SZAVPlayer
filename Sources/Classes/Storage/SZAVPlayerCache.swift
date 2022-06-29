@@ -8,6 +8,8 @@ import UIKit
 
 public class SZAVPlayerCache: NSObject {
 
+    private let videoCacheQueue: DispatchQueue = DispatchQueue(label: "com.SZAVPlayer.videoCacheQueue", qos: .userInitiated)
+    
     public static let shared: SZAVPlayerCache = SZAVPlayerCache()
 
     private var maxCacheSize: Int64 = 0
@@ -80,7 +82,7 @@ public class SZAVPlayerCache: NSObject {
     }
 
     public func trimCache() {
-        DispatchQueue.global(qos: .background).async {
+        videoCacheQueue.async {
             let directory = SZAVPlayerFileSystem.cacheDirectory
             let allFiles: [URL] = SZAVPlayerFileSystem.allFiles(path: directory)
             var totalFileSize: Int64 = 0

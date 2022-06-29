@@ -172,8 +172,6 @@ extension SZAVPlayerAssetLoader {
         guard let avDataRequest = loadingRequest.dataRequest else {
             return false
         }
-        
-        SZLogDebug("assetloader(\(self) handleDataRequest \(loadingRequest)")
 
         let lowerBound = avDataRequest.requestedOffset
         let length = Int64(avDataRequest.requestedLength)
@@ -189,7 +187,7 @@ extension SZAVPlayerAssetLoader {
         }()
         
         dataLoader.append(requestedRange: requestedRange, dataRequest: dataRequest)
-
+        SZLogDebug("assetloader(\(self) handleDataRequest range:\(requestedRange)")
         return true
     }
 
@@ -244,7 +242,7 @@ extension SZAVPlayerAssetLoader: AVAssetResourceLoaderDelegate {
                                didCancel loadingRequest: AVAssetResourceLoadingRequest)
     {
         dataLoader.cancelLoadingRequest(loadingRequest)
-        SZLogDebug("cancel loadingRequest \(loadingRequest)")
+        SZLogDebug("cancel loadingRequest")
     }
 
 }

@@ -70,6 +70,7 @@ class SZAVPlayerDataLoader: NSObject {
         self.allDataLoaderOperation.forEach { operation in
             operation.cancel()
         }
+        self.allDataLoaderOperation = []
         dataLoaderOperationQueue.cancelAllOperations()
     }
 

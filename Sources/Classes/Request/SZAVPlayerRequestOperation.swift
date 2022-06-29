@@ -35,7 +35,7 @@ public class SZAVPlayerRequestOperation: Operation {
 
     public init(url: URL, range: SZAVPlayerRange?, config: SZAVPlayerConfig) {
         self.config = config
-        self.performQueue = DispatchQueue(label: "com.SZAVPlayer.RequestOperation", qos: .background)
+        self.performQueue = DispatchQueue(label: "com.SZAVPlayer.RequestOperation", qos: .userInitiated)
         super.init()
 
         requestCompletion = defaultCompletion()
@@ -51,7 +51,10 @@ public class SZAVPlayerRequestOperation: Operation {
     // MARK: Operation Requirements
 
     override public func start() {
-        guard !isCancelled else {return}
+        guard !isCancelled else {
+            markAsFinished()
+            return
+        }
         markAsRunning()
         performQueue.async {
             self.work { [weak self] in
@@ -67,6 +70,9 @@ public class SZAVPlayerRequestOperation: Operation {
     }
 
     override public func cancel() {
+        SZLogDebug("cancel")
+        markAsFinished()
+        super.cancel()
         task?.cancel()
     }
 

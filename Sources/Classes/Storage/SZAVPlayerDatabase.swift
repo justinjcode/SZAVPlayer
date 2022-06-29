@@ -14,6 +14,8 @@ public class SZAVPlayerDatabase: NSObject {
     private let dbQueue = SZDatabase()
     private let dbFileName = SZAVPlayerFileSystem.documentsDirectory.appendingPathComponent("SZAVPlayer.sqlite").absoluteString
 
+    private let videoDatabaseQueue: DispatchQueue = DispatchQueue(label: "com.SZAVPlayer.videoDatabaseQueue", qos: .userInitiated)
+    
     override init() {
         super.init()
 
@@ -41,7 +43,7 @@ public class SZAVPlayerDatabase: NSObject {
     }
 
     public func trimData(uniqueID: String? = nil) {
-        DispatchQueue.global(qos: .background).async {
+        videoDatabaseQueue.async {
             if let uniqueID = uniqueID, !uniqueID.isEmpty {
                 self.delete(uniqueID: uniqueID)
             } else {

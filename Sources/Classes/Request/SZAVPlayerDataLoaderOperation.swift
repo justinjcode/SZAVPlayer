@@ -74,8 +74,10 @@ class SZAVPlayerDataLoaderOperation: Operation {
     }
 
     override public func cancel() {
+        markAsFinished()
         self.operationQueue.cancelAllOperations()
         super.cancel()
+        SZLogDebug("cancel")
     }
 
     override open var isFinished: Bool {
