@@ -57,6 +57,7 @@ public class SZAVPlayerCache: NSObject {
         guard let contentInfo = info, contentInfo.contentLength > 0,
             localFileInfos.count > 0 else
         {
+            SZLogDebug("isFullyCached uniqueId:\(uniqueID) false")
             return false
         }
 
@@ -78,27 +79,34 @@ public class SZAVPlayerCache: NSObject {
         }
 
         let isFullyCached = startOffset >= endOffset
+        SZLogDebug("isFullyCached uniqueId:\(uniqueID) \(isFullyCached)")
         return isFullyCached
     }
 
     public func trimCache() {
         videoCacheQueue.async {
-            let directory = SZAVPlayerFileSystem.cacheDirectory
-            let allFiles: [URL] = SZAVPlayerFileSystem.allFiles(path: directory)
-            var totalFileSize: Int64 = 0
-            for file in allFiles {
-                if let attributes = SZAVPlayerFileSystem.attributes(url: file.path),
-                    let fileSize = attributes[FileAttributeKey.size] as? Int64
-                {
-                    totalFileSize += fileSize
-                }
-            }
+            
+            var totalFileSize = self.getTotalCacheSize()
 
             totalFileSize /= 1024 * 1024
             if totalFileSize >= self.maxCacheSize {
                 SZAVPlayerDatabase.shared.trimData()
             }
         }
+    }
+    
+    public func getTotalCacheSize() -> Int64 {
+        let directory = SZAVPlayerFileSystem.cacheDirectory
+        let allFiles: [URL] = SZAVPlayerFileSystem.allFiles(path: directory)
+        var totalFileSize: Int64 = 0
+        for file in allFiles {
+            if let attributes = SZAVPlayerFileSystem.attributes(url: file.path),
+                let fileSize = attributes[FileAttributeKey.size] as? Int64
+            {
+                totalFileSize += fileSize
+            }
+        }
+        return totalFileSize
     }
 
 }
