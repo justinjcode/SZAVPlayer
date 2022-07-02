@@ -15,6 +15,7 @@ private let SZPlayerItemStatus = "status"
 private let SZPlayerLoadedTimeRanges = "loadedTimeRanges"
 private let SZPlayerPlaybackBufferEmpty = "playbackBufferEmpty"
 private let SZPlayerPlaybackLikelyToKeepUp = "playbackLikelyToKeepUp"
+private let SZPlayerRate = "rate"
 
 /// AVPlayer status. You can implement SZAVPlayerDelegate to receive state changes.
 public enum SZAVPlayerStatus: Int {
@@ -59,6 +60,8 @@ public protocol SZAVPlayerDelegate: AnyObject {
     /// - Parameters:
     ///   - videoImage: Real-time video image.
     func avplayer(_ avplayer: SZAVPlayer, didOutput videoImage: CGImage)
+    
+    func avplayer(_ avplayer: SZAVPlayer, rateDidChanged rate: Float)
 }
 
 extension SZAVPlayerDelegate {
@@ -359,6 +362,7 @@ extension SZAVPlayer {
             }
         case .failed:
             handlePlayerStatus(status: .loadingFailed)
+            SZLogError(playerItem.error.debugDescription)
         case .unknown:
             break
         @unknown default:
@@ -422,6 +426,10 @@ extension SZAVPlayer {
             CVPixelBufferUnlockBaseAddress(pixelBuffer, .readOnly)
         }
     }
+    
+    func handlePlayerRateChanged(player: AVPlayer) {
+        delegate?.avplayer(self, rateDidChanged: player.rate)
+    }
 
 }
 
@@ -460,6 +468,7 @@ extension SZAVPlayer {
         playerItem.addObserver(self, forKeyPath: SZPlayerLoadedTimeRanges, options: .new, context: nil)
         playerItem.addObserver(self, forKeyPath: SZPlayerPlaybackBufferEmpty, options: .new, context: nil)
         playerItem.addObserver(self, forKeyPath: SZPlayerPlaybackLikelyToKeepUp, options: .new, context: nil)
+        self.player?.addObserver(self, forKeyPath: SZPlayerRate, options: .new, context: nil)
     }
 
     private func removePlayerItemObserver(playerItem: AVPlayerItem) {
@@ -468,6 +477,7 @@ extension SZAVPlayer {
         playerItem.removeObserver(self, forKeyPath: SZPlayerLoadedTimeRanges)
         playerItem.removeObserver(self, forKeyPath: SZPlayerPlaybackBufferEmpty)
         playerItem.removeObserver(self, forKeyPath: SZPlayerPlaybackLikelyToKeepUp)
+        self.player?.removeObserver(self, forKeyPath: SZPlayerRate)
     }
 
     override public func observeValue(forKeyPath keyPath: String?,
@@ -475,26 +485,31 @@ extension SZAVPlayer {
                                       change: [NSKeyValueChangeKey : Any]?,
                                       context: UnsafeMutableRawPointer?)
     {
-        guard let playerItem = object as? AVPlayerItem else { return }
-
-        switch keyPath {
-        case SZPlayerItemStatus:
-            handlePlayerItemStatus(playerItem: playerItem)
-        case SZPlayerLoadedTimeRanges:
-            handleLoadedTimeRanges(playerItem: playerItem)
-        case SZPlayerPlaybackBufferEmpty:
-            if isReadyToPlay {
-                isBufferBegin = true
-                handlePlayerStatus(status: .bufferBegin)
+        if let playerItem = object as? AVPlayerItem {
+            switch keyPath {
+            case SZPlayerItemStatus:
+                handlePlayerItemStatus(playerItem: playerItem)
+            case SZPlayerLoadedTimeRanges:
+                handleLoadedTimeRanges(playerItem: playerItem)
+            case SZPlayerPlaybackBufferEmpty:
+                if isReadyToPlay {
+                    isBufferBegin = true
+                    handlePlayerStatus(status: .bufferBegin)
+                }
+            case SZPlayerPlaybackLikelyToKeepUp:
+                if isReadyToPlay && isBufferBegin {
+                    isBufferBegin = false
+                    handlePlayerStatus(status: .bufferEnd)
+                }
+            default:
+                break
             }
-        case SZPlayerPlaybackLikelyToKeepUp:
-            if isReadyToPlay && isBufferBegin {
-                isBufferBegin = false
-                handlePlayerStatus(status: .bufferEnd)
+        } else if let player = object as? AVPlayer {
+            if keyPath == SZPlayerRate {
+                handlePlayerRateChanged(player: player)
             }
-        default:
-            break
         }
+        
     }
 
 }
