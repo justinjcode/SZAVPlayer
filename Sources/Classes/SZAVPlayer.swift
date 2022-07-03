@@ -146,6 +146,8 @@ public class SZAVPlayer: UIView {
 
         delegate = nil
         playerItem = nil
+        SZLogInfo("deinit")
+        
     }
 
     public override func layoutSubviews() {
